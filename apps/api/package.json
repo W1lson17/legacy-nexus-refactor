@@ -1,0 +1,29 @@
+{
+  "name": "@legacy/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc && tsc-alias",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@legacy/shared": "workspace:*",
+    "@prisma/client": "^6",
+    "dotenv": "^16",
+    "express": "^5",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5",
+    "eslint": "^10.3.0",
+    "prisma": "^7.8.0",
+    "tsc-alias": "^1",
+    "tsx": "^4",
+    "typescript": "^5.8",
+    "typescript-eslint": "^8.59.3"
+  }
+}

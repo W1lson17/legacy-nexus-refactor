@@ -1,0 +1,12 @@
+// Database: SQLite (file-based, no network layer or Docker required)
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Models will be added in Sprint 2+ as domain entities are defined.
+// Placeholder: this file exists so prisma generate succeeds.
