@@ -22,3 +22,17 @@ export class ForbiddenError extends DomainError {
     super('Insufficient permissions');
   }
 }
+
+export class NotFoundError extends DomainError {
+  constructor(entity: string, id: string | number) {
+    super(`${entity} not found: ${id}`);
+    this.name = 'NotFoundError';
+  }
+}
+
+export class ConflictError extends DomainError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ConflictError';
+  }
+}
