@@ -1,7 +1,3 @@
-import type { RequestHandler } from 'express';
-import type { TokenService, TokenPayload } from '../../domain/ports/TokenService.js';
-
-// Extend Express Request type via declaration merging
 /* eslint-disable @typescript-eslint/no-namespace */
 import type { RequestHandler } from 'express';
 import type { TokenService, TokenPayload } from '../../domain/ports/TokenService.js';

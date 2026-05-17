@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 
@@ -43,6 +44,12 @@ const listUsersUseCase = new ListUsersUseCase(userRepo);
 
 // ── Global Middleware ──────────────────────────────────────────────────────────
 
+app.use(
+  cors({
+    origin: process.env['CORS_ORIGIN'] || 'http://localhost:5173',
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 

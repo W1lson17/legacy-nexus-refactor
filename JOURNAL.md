@@ -197,3 +197,174 @@ Se comprobó que al poblar la base de datos de manera controlada, los adaptadore
 
 ### Decisiones
 Decidí dar por aprobado el backend de autenticación tras la verificación empírica de los endpoints, procediendo a unificar el historial de Git mediante un merge limpio de la rama `feature/auth-backend` hacia `develop`. Esto garantiza un punto de restauración robusto antes de iniciar el andamiaje del frontend.
+
+## 2026-05-17 13:41
+### Prompt Utilizado
+Ajuste de requerimientos para la Fase B (Frontend). En lugar de fetch nativo y formularios puros de React Router, implementa la capa de cliente HTTP utilizando Axios y la gestión de formularios mediante React Hook Form con el resolver de Zod (`@hookform/resolvers/zod`).
+
+Asegúrate de que la propuesta (`sdd-propose`) refleje:
+1. Configuración global de Axios con `withCredentials: true` e interceptores para manejo de errores de autenticación (401/403).
+2. Integración de React Hook Form en la página de Login consumiendo el esquema de validación compartido en el monorepo.
+3. Mantenimiento de los `loaders` de React Router v7 como guardianes de ruta para el control de acceso en el servidor/cliente.
+
+Genera la propuesta ajustada y detén la ejecución.
+
+### Qué hice
+Evalué la viabilidad técnica de introducir Axios y React Hook Form en la capa de presentación. Determiné que optimizan la mantenibilidad del código al centralizar la configuración de cookies y simplificar la gestión de errores en los formularios. Ordené al agente reestructurar la propuesta bajo este stack.
+
+### Hallazgos legacy
+N/A (Decisión de diseño para el nuevo stack).
+
+### Decisiones
+Decidí adoptar Axios debido a la potencia de sus interceptores globales para manejar cierres de sesión forzados ante respuestas 401 del backend. Elegí React Hook Form combinado con el resolver de Zod para garantizar que la validación en el cliente sea un espejo exacto de las reglas de negocio del backend, mejorando la experiencia de usuario sin sacrificar la seguridad por loaders de enrutamiento.
+
+## 2026-05-17 13:48
+### Prompt Utilizado
+Corrección a la propuesta de la Fase B (Frontend). Asistente, ajusta el stack con los siguientes cambios mandatorios antes de generar el plan de tareas:
+1. Reemplaza cualquier uso o instalación de `react-router-dom` por la versión unificada oficial de React Router v7 (`react-router`). Toda la configuración del router debe alinearse a la API moderna de la v7.
+2. Descarta el uso de `AuthContext` nativo e introduce Zustand (`pnpm add zustand`) como el gestor de estado global para la sesión del usuario (`useAuthStore`). El almacén debe coordinar el estado de autenticación de forma reactiva y consumir la instancia de Axios.
+
+Genera el plan de tareas (`sdd-tasks`) optimizado para un Single PR continuo para el Frontend.
+
+### Qué hice
+Corregí la propuesta de arquitectura frontend del agente para alinearlo estrictamente con los estándares oficiales de React Router v7, eliminando dependencias obsoletas (`react-router-dom`). Asimismo, sustituí el mecanismo de Context API por Zustand para optimizar el rendimiento de la UI a través de subscripciones por selectores y centralizar el estado de la sesión de manera profesional.
+
+### Hallazgos legacy
+N/A (Refinamiento del diseño de la nueva interfaz).
+
+### Decisiones
+Decidí forzar el uso de `react-router` v7 puro y Zustand para evitar re-renders innecesarios en la aplicación y garantizar que el andamiaje del frontend cumpla con las mejores prácticas de optimización de rendimiento exigidas en desarrollos modernos. Esta combinación simplifica drásticamente los loaders y los componentes de layout protegidos.
+
+## 2026-05-17 13:59
+### Prompt Utilizado
+Lista de 15 tareas para la Fase B (Frontend Auth) aprobada. Procede directamente con la fase `sdd-apply` aplicando todo el bloque completo como un Single PR de forma continua para optimizar los tiempos de entrega.
+
+Asegúrate de:
+1. Configurar la persistencia reactiva en Zustand consumiendo la instancia de Axios configurada con `withCredentials: true`.
+2. Vincular los componentes de protección perimetral (`ProtectedRoute` y `AdminGuard`) utilizando los `loaders` nativos de React Router v7 para interceptar el estado del store (`authStore.getState().checkAuth()`) antes de renderizar las vistas.
+3. Configurar correctamente el proxy en `vite.config.ts` para evitar bloqueos por CORS durante las llamadas locales a la API.
+
+Detén la ejecución al finalizar las tareas de verificación de la Phase 4.
+
+### Qué hice
+Aprobé el plan técnico de 15 tareas para el frontend de autenticación. Ordené la ejecución inmediata mediante un Single PR continuo. Enmarqué el desarrollo bajo directrices estrictas de sincronización entre los loaders de React Router v7 y las consultas de estado atómicas hacia Zustand para blindar la seguridad del lado del cliente.
+
+### Hallazgos legacy
+N/A (Fase de codificación e integración del cliente web).
+
+### Decisiones
+Decidí acoplar los loaders del enrutador de la v7 con llamadas directas al estado imperativo de Zustand (`getState()`) para resolver la sesión de forma síncrona en las transiciones de ruta, bloqueando el renderizado de interfaces privadas a usuarios anónimos o no administradores. Mantuve la estrategia de un único bloque de cambios para acelerar la entrega de la UI funcional.
+
+## 2026-05-17 14:16
+### Prompt Utilizado
+Detén el proceso de Git. Al probar en el navegador se presentó un error de CORS debido a que la instancia de Axios apunta a 'http://localhost:3000', puenteando el proxy existente de Vite. Dado que `vite.config.ts` ya tiene el proxy correctamente configurado para `/api`, realiza únicamente las siguientes acciones:
+1. Crea `apps/web/.env.example` y `apps/web/.env` declarando `VITE_API_URL=` (vacío en dev).
+2. Modifica la instancia de Axios en `apps/web/src/lib/axios.ts` para que use `baseURL: import.meta.env.VITE_API_URL || '/'`.
+3. Asegura que el backend (`apps/api`) en su Composition Root admita el middleware de CORS con `origin: 'http://localhost:5173'` y `credentials: true` por seguridad de cookies si se requiere.
+
+Verifica la compilación limpia con `tsc --noEmit`.
+
+### Qué hice
+Identifiqué que el proxy de Vite en `vite.config.ts` ya estaba correctamente estructurado. Aislé el problema exclusivamente en la inicialización de Axios y en la falta de variables de entorno. Ordené la corrección quirúrgica de la `baseURL` hacia rutas relativas y la creación del sistema `.env`.
+
+### Hallazgos legacy
+N/A (Corrección de cableado de infraestructura moderna).
+
+### Decisiones
+Decidí mantener intacto el archivo `vite.config.ts` para evitar duplicidad de esfuerzos y focalizar el cambio en el desacoplamiento de la URL de Axios mediante un fallback a `/`, permitiendo que el proxy existente funcione de forma nativa.
+
+## 2026-05-17 14:24
+### Prompt Utilizado
+Detén el proceso de Git. Vamos a consolidar la infraestructura, el fix de navegación y el rediseño estético completo de la UI antes de realizar el commit de la Fase B. Realiza las siguientes tareas de forma secuencial:
+1. **Backend - Variable CORS**: Configura `CORS_ORIGIN=http://localhost:5173` en `.env` y haz que el servidor Express consuma `process.env.CORS_ORIGIN`.
+2. **Frontend - Guardián Inverso**: En `apps/web/src/router.tsx`, añade un loader a `/login` que redirija a `/dashboard` si el usuario ya está autenticado (`useAuthStore.getState().isAuthenticated`).
+3. **Frontend - Inicialización de Shadcn UI**: Ejecuta `pnpm dlx shadcn@latest init` en la raíz de `apps/web`. Si el CLI se bloquea por prompts interactivos, detén el proceso y notifícame para correrlo de forma manual.
+4. **Frontend - Rediseño de LoginPage y Dashboard**: Instala los componentes necesarios de Shadcn. Reescribe `LoginPage.tsx` implementando un formulario estético con una tarjeta centrada. Asimismo, modifica `Dashboard.tsx` y el `Layout.tsx` común para estructurar un panel de control limpio, usando componentes de Shadcn, mostrando el perfil del usuario activo extraído de Zustand y estilizando el botón de Logout.
+
+Verifica la compilación limpia con `pnpm -r exec tsc --noEmit`.
+
+### Qué hice
+Decidí expandir el alcance de la Fase B antes de consolidar el código en el historial de Git. Además de parametrizar las variables de CORS en el backend y corregir el bug de navegación inversa mediante loaders en React Router v7, ordené la instalación de Shadcn UI y el rediseño inmediato de la pantalla de inicio de sesión para entregar un componente de presentación definitivo y profesional.
+
+### Hallazgos legacy
+N/A (Construcción estética y funcional de la nueva UI).
+
+### Decisiones
+Decidí rechazar el empaquetado de una interfaz temporal (HTML nativo) para evitar la duplicación de refactorizaciones en el siguiente sprint. Forzar el rediseño con Shadcn UI acoplado a React Hook Form en este punto asegura que el commit `feat(auth): ...` contenga una pieza de software con calidad de producción tanto en su arquitectura lógica como en su experiencia visual.
+
+## 2026-05-17 14:33
+### Prompt Utilizado
+Detecté un error de estructura en la inicialización de Shadcn UI: los componentes se crearon en `apps/web/@/components/ui` en lugar de `apps/web/src/components/ui`. 
+
+Por favor, corrige esto de inmediato ejecutando lo siguiente:
+1. Mueve físicamente la carpeta de componentes generada a `apps/web/src/components/ui`.
+2. Modifica el archivo `apps/web/components.json` para que las propiedades de rutas (`aliases.components` y `aliases.ui`) apunten correctamente a carpetas dentro de `src/` (ej. `src/components` y `src/components/ui`).
+3. Revisa `apps/web/tsconfig.json` (o `tsconfig.app.json`) y `apps/web/vite.config.ts` para asegurar que el alias `@/` esté correctamente mapeado a `./src/*`.
+4. Asegúrate de que las vistas de `LoginPage.tsx`, `Dashboard.tsx` y `Layout.tsx` importen los componentes desde la ruta correcta dentro de `src/`.
+
+Verifica con `pnpm -r exec tsc --noEmit` que todo compile sin errores de importación.
+
+### Qué hice
+Audité la instalación de Shadcn UI realizada por el agente y detecté que el CLI generó una carpeta `@/` parásita en la raíz de `apps/web`. Ordené la migración inmediata de los componentes hacia la ruta estándar `src/components/ui` y la reconfiguración de los archivos de mapeo de Shadcn y TypeScript.
+
+### Hallazgos legacy
+N/A (Corrección de arquitectura de carpetas en el nuevo entorno).
+
+### Decisiones
+Decidí encapsular de forma estricta todo el código fuente de la UI dentro del directorio `src/` para mantener la consistencia del monorepo. Permitir carpetas ocultas o alias mal configurados en la raíz de una aplicación degrada la mantenibilidad del proyecto y genera fallos de resolución de módulos en los entornos de CI/CD.
+
+## 2026-05-17 14:37
+### Prompt Utilizado
+Fallo en la instalación de dependencias del frontend debido a la restricción de seguridad `[ERR_PNPM_IGNORED_BUILDS]` aplicada sobre `msw`. 
+
+Ejecuta en la terminal de la raíz del monorepo:
+1. `pnpm approve-builds` (o autoriza explícitamente mediante la configuración del gestor de paquetes).
+2. Reejecuta `pnpm install` para destrabar el árbol de dependencias y permitir que el instalador finalice.
+
+### Qué hice
+Identifiqué un bloqueo de seguridad en las políticas de ejecución de scripts de ciclo de vida (build scripts) de pnpm 11. Instruí al agente a autorizar los builds requeridos y relanzar el aprovisionamiento de paquetes para normalizar el entorno del monorepo.
+
+### Hallazgos legacy
+N/A (Incidente exclusivo de la configuración de seguridad del gestor de paquetes moderno).
+
+### Decisiones
+Decidí aprobar la ejecución de scripts de dependencias confiables a nivel de monorepo para saltar la restricción perimetral de pnpm, garantizando la continuidad de la instalación de paquetes del ecosistema de testing/UI del frontend.
+
+## 2026-05-17 14:46
+### Prompt Utilizado
+A montar el componente `Dashboard.tsx` con la UI definitiva, detecté que la expresión `{user?.username}` se renderiza en blanco, a pesar de que la sesión está activa y el token es válido. 
+
+Este comportamiento se debe a que estás importando o leyendo el estado de Zustand de forma estática o imperativa fuera del flujo de suscripción de React (o utilizando un formato de desestructuración que rompe la reactividad del hook). Modifica el componente `Dashboard.tsx` para asegurar que extraiga la propiedad `user` mediante un selector de función limpio dentro del hook: `const user = useAuthStore((state) => state.user);`. Esto garantizará que el componente se suscriba de manera atómica a los cambios del estado y ejecute un re-render inmediato en cuanto la resolución asíncrona de `checkAuth` actualice el store.
+
+### Qué hice
+Identifiqué y corregí un fallo crítico de sincronización visual en el Dashboard privado. El componente no reflejaba los datos del usuario autenticado debido a un problema de pérdida de reactividad en la suscripción del store de Zustand. Ordené la refactorización del componente para implementar un selector hook reactivo que enlace el ciclo de vida de React con el estado global de la sesión.
+
+### Hallazgos legacy
+N/A (Incidente exclusivo de la sincronización de estado asíncrono en la nueva arquitectura SPA).
+
+### Decisiones
+Decidí estandarizar el acceso al almacén de Zustand utilizando selectores de grano fino (`state => state.user`) en lugar de lecturas imperativas de instantánea (`.getState()`). Al delegar la suscripción al hook de Zustand, garantizo que React intercepte la transición del estado `null` inicial hacia el objeto de identidad real cuando la API responde, forzando la actualización del subárbol de componentes de forma eficiente y sin re-renders masivos.
+
+## 2026-05-17 14:50
+### Prompt Utilizado
+Con la corrección de la desestructuración del wrapper JSON en `authStore.ts` (`const { user } = response.data`) y la verificación de que TypeScript compila limpio y la UI renderiza el estado de forma reactiva, hemos cerrado el ciclo de estabilización.
+
+Procede de inmediato con las tareas de control de versiones de la Fase B y el cierre formal del Change bajo el framework SDD:
+1. Ejecuta los comandos de Git necesarios en la terminal de forma secuencial para:
+   - Crear y cambiar a la rama de característica desde develop: `git checkout -b feature/auth-frontend`
+   - Realizar staging de todos los archivos modificados y nuevos.
+   - Hacer el commit atómico bajo estándares convencionales: `feat(auth): implement modern login and dashboard ui with shadcn and reactive zustand store`
+   - Regresar a la rama de desarrollo: `git checkout develop`
+   - Hacer el merge de la característica: `git merge feature/auth-frontend`
+2. Ejecuta el comando formal `sdd-archive` para cerrar permanentemente este change de Frontend de Autenticación en Engram y consolidar el Sprint 2 de manera definitiva.
+
+Muéstrame el historial para confirmar el cierre limpio del árbol de trabajo.
+
+### Qué hice
+Coordiné la resolución final del bug de tipado/desestructuración en el store de Zustand donde se asignaba el objeto de respuesta completo en lugar de la propiedad anidada `user`. Tras validar el éxito del renderizado, ordené el empaquetado final, merge a la rama principal de desarrollo e invoqué el cierre de ciclo de vida del cambio mediante las herramientas nativas del framework SDD.
+
+### Hallazgos legacy
+Se descubrió que la API moderna encapsula las respuestas de identidad dentro de un objeto descriptor `{ user: {...} }`. El almacenamiento intermedio (Zustand Store) mapeaba erróneamente la raíz del payload, rompiendo la interfaz de tipos en tiempo de ejecución de React pero pasando desapercibido en el tipado laxo inicial. La corrección quirúrgica resolvió la inconsistencia de raíz.
+
+### Decisiones
+Decidí dar por concluido el Sprint 2 de Autenticación tanto en su componente lógico (Backend Hexagonal) como en su componente de presentación (Frontend SPA). Forzar el uso del comando `sdd-archive` en este punto congela de forma permanente el Bounded Context de seguridad del sistema, asegurando que los siguientes módulos del ERP hereden una infraestructura perimetral limpia, tipada y completamente auditada.
