@@ -8,5 +8,18 @@ datasource db {
   provider = "sqlite"
 }
 
-// Models will be added in Sprint 2+ as domain entities are defined.
-// Placeholder: this file exists so prisma generate succeeds.
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Placeholder relations — uncomment when models exist:
+  // Sale[]         Sales
+  // Refund[]       Refunds
+  // Notification[] Notifications
+
+  @@map("users")
+}

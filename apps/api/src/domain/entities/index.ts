@@ -1,2 +1,1 @@
-// Domain entities — Sprint 2
-export {};
+export { User } from './User.js';

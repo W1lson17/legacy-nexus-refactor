@@ -87,3 +87,113 @@ N/A (Cierre de la infraestructura de soporte).
 
 ### Decisiones
 Decidí actualizar las dependencias con `pnpm update` en este punto exacto para garantizar la máxima estabilidad del entorno antes de comenzar a acoplar la lógica de negocio del ERP. Incluir `.atl` en el `.gitignore` fue una decisión crítica de limpieza para evitar contaminación en el historial de commits del repositorio público que se entregará al evaluador.
+
+## 2026-05-17 12:26
+### Prompt Utilizado
+Iniciamos un nuevo ciclo de SDD para el "Change: Bounded Context - Autenticación y Usuarios". El objetivo es migrar el sistema de autenticación del legacy de Python/Flask hacia nuestro nuevo stack hexagonal, implementando JWT, bcrypt y HttpOnly cookies para mitigar las vulnerabilidades identificadas.
+
+Realiza las siguientes tareas de análisis y diseño antes de generar código:
+1. Inspecciona el código fuente legacy en `/home/williams/EVAL-DEV01` y el archivo `seed_data.sql` para identificar cómo se almacenan los usuarios, credenciales, roles (admin/user) y cómo se manejan las sesiones en Flask.
+2. Ejecuta `sdd-init` para este nuevo cambio y genera el documento de propuesta (`sdd-propose`) detallando:
+   - El modelo de datos de Prisma para la tabla `User` (o equivalente) mapeando correctamente los campos y tipos de datos desde el seed inmutable.
+   - Los contratos e interfaces del dominio (`apps/api/src/domain`) para el repositorio de usuarios y el servicio de tokens.
+   - La estructura de los esquemas de validación con Zod que vivirán en `packages/shared` para el Login Payload.
+3. Define la estrategia para el frontend en `apps/web` usando React Router v7 en Data Mode para la protección de rutas basadas en los claims del JWT (admin check).
+
+Presenta el documento `sdd-propose` para su revisión y detén la ejecución. No crees archivos ni ejecutes comandos aún.
+
+### Qué hice
+Abrí un nuevo ciclo de desarrollo dentro del framework SDD enfocado en el Bounded Context de Autenticación. Ordené al agente inspeccionar el monolito heredado en Python para extraer las reglas de negocio de las sesiones y la estructura de datos de los usuarios, exigiendo una propuesta de diseño formal antes de proceder con la implementación.
+
+### Hallazgos legacy
+N/A (Fase de análisis y lectura del código en Python iniciada).
+
+### Decisiones
+Decidí priorizar el módulo de Autenticación sobre los demás dominios debido a que el control de acceso, los contratos de usuario y el manejo de tokens JWT son dependencias bloqueantes para el resto de los endpoints del ERP. Forcé al agente a diseñar primero las interfaces puras del dominio, asegurando el cumplimiento estricto de la Arquitectura Hexagonal (independencia de frameworks).
+
+## 2026-05-17 12:37
+### Prompt Utilizado
+Propuesta de Autenticación y Usuarios totalmente aprobada. Pasa directamente a las fases `sdd-spec` y `sdd-design` para generar el plan de tareas (`sdd-tasks`) correspondiente a la Fase A (Backend de Autenticación).
+
+El plan de tareas debe priorizar un flujo estrictamente desacoplado:
+1. Actualización de `schema.prisma` e inclusión del script de seed modificado para hashear contraseñas en tiempo de ejecución.
+2. Creación de los contratos de dominio, la entidad `User` y los esquemas de validación Zod en el paquete compartido.
+3. Implementación de los casos de uso (`Login`, `Logout`, `Me`) independientes del framework.
+4. Construcción de los adaptadores de infraestructura (Express controllers, JWT service, Bcrypt adapter y Rate Limiter).
+
+Múestrame la lista de tareas detallada para su autorización antes de proceder con `sdd-apply`.
+
+### Qué hice
+Analicé y aprobé el documento de diseño arquitectónico para el módulo de Autenticación. Validé la estrategia de mapeo de columnas nativas con Prisma para evitar alteraciones estructurales en la base de datos legacy, el mecanismo de protección de sesiones mediante cookies HttpOnly y el uso de React Router v7 en el frontend. Autoricé al agente a generar el desglose de tareas de desarrollo para el Backend.
+
+### Hallazgos legacy
+Confirmé que las contraseñas originales se almacenan en texto plano bajo la columna `password` de la tabla `users` y que el rol administrativo se define mediante un booleano `is_admin`. El seed original carece de mecanismos de hashing modernos.
+
+### Decisiones
+Decidí dividir el desarrollo del módulo en dos bloques, enfocando al agente primero de forma exclusiva en el Backend para garantizar la consistencia de los contratos y las pruebas de los endpoints antes de tocar la interfaz de usuario. Exigí la inclusión explícita del hashing automático con bcrypt (factor de costo 12) dentro del proceso de seeding de Prisma para purgar las contraseñas en texto plano desde la base de datos de desarrollo.
+
+## 2026-05-17 12:52
+### Prompt Utilizado
+Lista de 33 tareas para la Fase A (Backend Auth) analizada y aprobada. Procede con la fase `sdd-apply`. Por restricciones de tiempo del sprint actual, descarta la estrategia de Chained PRs y aplica el bloque completo como un Single PR de forma estrictamente secuencial.
+
+Asegúrate de:
+1. Respetar la inyección de dependencias en el Composition Root (`apps/api/src/index.ts`) conectando correctamente el adaptador de Bcrypt y el servicio de JWT hacia los casos de uso.
+2. Configurar las cookies de JWT en el controlador con las flags `httpOnly: true`, `sameSite: 'lax'`, y `secure: false` (condicional para entorno de desarrollo).
+3. Asegurar que el dominio no contenga ninguna dependencia externa.
+
+Detén la ejecución al finalizar las tareas de verificación de la Phase 4.
+
+### Qué hice
+Revisé y aprobé el desglose de 33 tareas para el desarrollo del backend de autenticación bajo Arquitectura Hexagonal. Optimicé la estrategia de entrega forzando un modelo de Single PR en lugar de Chained PRs para mitigar riesgos de sobrecarga en la gestión de Git durante el examen. Ordene iniciar la fase `sdd-apply`.
+
+### Hallazgos legacy
+N/A (Fase de codificación e infraestructura de software).
+
+### Decisiones
+Decidí omitir el flujo de PRs apilados exclusivamente para maximizar la velocidad de ejecución en la terminal, garantizando que el agente se enfoque al 100% en escribir el código fuente y pasar los tests de compilación. Instruí la configuración de seguridad explícita para las cookies (HttpOnly y SameSite) y el aislamiento riguroso del dominio para blindar la evaluación de la arquitectura.
+
+## 2026-05-17 13:23
+### Prompt Utilizado
+Antes de proceder con las tareas de Git y el archive, detecté un fallo lógico crítico: al intentar loguearme en Postman con los usuarios del seed original, el backend retornó un estado 401. Al inspeccionar `prisma/seed.ts`, se identificó que el script solo intenta actualizar registros asumiendo que ya existen, pero la base de datos SQLite está vacía debido a que `prisma db push` solo monta la estructura del esquema. El script actual no está sembrando ningún dato.
+
+Modifica `prisma/seed.ts` para que realice lo siguiente:
+1. Siga siendo un script compatible con Prisma v7 y LibSQL.
+2. Dado que `seed_data.sql` es una entrada inmutable, haz que el script inserte de forma limpia los usuarios mínimos por defecto necesarios para operar el sistema (el usuario "admin" con password "1234" e isAdmin en true, y el usuario "user" con password "1234" e isAdmin en false) mapeando las columnas del legacy.
+3. Asegúrate de que las contraseñas se guarden directamente hasheadas con Bcrypt (cost 12).
+4. Aplica una estrategia de upsert o verificación previa por `username` para que el script sea estrictamente idempotente.
+
+Vuelve a ejecutar el comando de seed a través de la terminal una vez modificado el archivo y muéstrame la confirmación de los registros insertados con éxito.
+
+### Qué hice
+Detuve el flujo de guardado en Git al detectar un fallo de autenticación (401) en Postman. Realicé una auditoría del archivo `prisma/seed.ts` generado por el agente y descubrí un error de diseño: el script operaba como un actualizador de contraseñas en lugar de un sembrador de registros base, dejando la tabla `users` vacía. Ordené la reescritura inmediata del script para poblar la base de datos de manera idempotente.
+
+### Hallazgos legacy
+Confirmé que la base de datos SQLite persistía con cero registros en la tabla de usuarios debido a que el comando de empuje estructural de Prisma no transfiere la data del SQL inmutable de forma nativa si no se orquesta un script de inserción activa.
+
+### Decisiones
+Decidí congelar el progreso e intervenir el script de seeding para inyectar de forma segura las credenciales por defecto (`admin`/`1234` y `user`/`1234`) bajo el estándar de hash Bcrypt cost 12. Esta corrección es un prerrequisito mandatorio para asegurar la paridad funcional con el legacy y permitir las pruebas de integración del frontend.
+
+## 2026-05-17 13:30
+### Prompt Utilizado
+Script de seeding corregido, ejecutado y verificado exitosamente (idempotencia comprobada en segunda pasada). El smoke test en Postman con las credenciales 'admin' / '1234' responde con estado 200 OK y escribe la cookie HttpOnly de sesión de forma correcta.
+
+Procede con las tareas de Git y cierre que teníamos en pausa de manera estrictamente secuencial:
+1. Modifica el archivo `.gitignore` en la raíz del monorepo e introduce la regla `tsconfig.tsbuildinfo`.
+2. Ejecuta los comandos de Git necesarios en la terminal para:
+   - Crear y cambiar a la rama de característica desde develop: `git checkout -b feature/auth-backend`
+   - Realizar staging de todos los archivos modificados (incluyendo el nuevo seed y los ADRs).
+   - Hacer el commit atómico con el mensaje exacto: `feat(auth): implement hexagonal backend with jwt and httponly cookies`
+   - Regresar a la rama de desarrollo: `git checkout develop`
+   - Hacer el merge de la característica: `git merge feature/auth-backend`
+3. Ejecuta el comando `sdd-archive` para cerrar permanentemente este bloque en Engram.
+
+Muéstrame el `git log` resultante en la rama `develop` para verificar la integración.
+
+### Qué hice
+Validé la correcta ejecución del script de seed modificado, confirmando la persistencia de los perfiles administrativo y operativo en la base de datos SQLite. Realicé el smoke test de integración con Postman, verificando la recepción de la cookie securizada y el payload tipado. Autoricé la consolidación de la fase en el control de versiones bajo el flujo de trabajo de Git estipulado.
+
+### Hallazgos legacy
+Se comprobó que al poblar la base de datos de manera controlada, los adaptadores de la capa de infraestructura del backend hexagonal interceptan y procesan correctamente los payloads de login validados por Zod y comparan el hash mediante Bcrypt sin fugas de memoria.
+
+### Decisiones
+Decidí dar por aprobado el backend de autenticación tras la verificación empírica de los endpoints, procediendo a unificar el historial de Git mediante un merge limpio de la rama `feature/auth-backend` hacia `develop`. Esto garantiza un punto de restauración robusto antes de iniciar el andamiaje del frontend.
