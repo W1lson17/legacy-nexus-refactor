@@ -1,0 +1,25 @@
+{
+  "name": "legacy-nexus-refactor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modern fullstack ERP — TypeScript monorepo (Express + React + Prisma)",
+  "scripts": {
+    "dev": "pnpm --parallel --stream -r dev",
+    "build": "pnpm --stream -r build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "pnpm --parallel -r lint",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:seed": "pnpm --filter api db:seed",
+    "db:studio": "pnpm --filter api db:studio"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
