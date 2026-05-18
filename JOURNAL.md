@@ -368,3 +368,201 @@ Se descubrió que la API moderna encapsula las respuestas de identidad dentro de
 
 ### Decisiones
 Decidí dar por concluido el Sprint 2 de Autenticación tanto en su componente lógico (Backend Hexagonal) como en su componente de presentación (Frontend SPA). Forzar el uso del comando `sdd-archive` en este punto congela de forma permanente el Bounded Context de seguridad del sistema, asegurando que los siguientes módulos del ERP hereden una infraestructura perimetral limpia, tipada y completamente auditada.
+
+## 2026-05-17 18:15
+### Prompt Utilizado
+Iniciamos formalmente el Sprint 3 enfocado en el "Product Catalog & Inventory Bounded Context". Ejecuta el comando de inicialización del framework `sdd-init` para abrir este nuevo Change en Engram.
+
+Antes de proponer código, realiza una auditoría obligatoria de la sección del código legacy correspondiente a la gestión de productos, inventarios y categorías. Genera el documento de propuesta arquitectónica (`sdd-propose`) que detalle:
+1. El diseño del esquema de base de datos en Prisma v7 para soportar las entidades `Product`, `Category` e `InventoryMovement` (para el historial de stock), asegurando las relaciones correctas y restricciones de integridad con LibSQL.
+2. La estructura del dominio hexagonal en `apps/api` (puertos, casos de uso y entidades de negocio para la gestión de stock).
+3. El plan de vistas en `apps/web` usando Shadcn UI para el catálogo (tablas de datos con paginación, filtros y modales de creación/edición con React Hook Form).
+
+Múestrame el resumen de la auditoría legacy y el plan de tareas (`sdd-tasks`) optimizado para su aprobación.
+
+### Qué hice
+Inauguré el Sprint 3 bajo el framework SDD. Ordené la inicialización del contexto de negocio de Catálogo e Inventarios e instruí al agente a realizar una ingeniería inversa del código legacy de productos para identificar vicios de acoplamiento, estructurando en paralelo la nueva arquitectura de persistencia, lógica y presentación.
+
+### Hallazgos legacy
+N/A (Fase de inicialización y apertura de Change).
+
+### Decisiones
+Decidí condicionar el inicio de la escritura de código a una fase estricta de análisis de la deuda técnica del legacy de productos. Se estableció que el modelo de inventarios debe soportar un esquema de auditoría de stock mediante movimientos (`InventoryMovement`) en lugar de solo actualizar un contador plano, garantizando trazabilidad empresarial para el ERP.
+
+## 2026-05-17 15:06
+### Prompt Utilizado
+Propuesta arquitectónica para el "Product Catalog & Inventory Bounded Context" aprobada. Los hallazgos de la auditoría legacy confirman vulnerabilidades críticas de inyección SQL y XSS que serán mitigadas de raíz mediante el uso de Prisma y React.
+
+Pasa a las fases `sdd-spec` y `sdd-design` para generar el plan de tareas (`sdd-tasks`) detallado. El plan debe estructurarse en dos grandes bloques:
+1. **Infraestructura y Backend (Fase A):** Extensión del esquema de Prisma (5 modelos), implementación de los 11 casos de uso en arquitectura hexagonal y controladores de Express.
+2. **Presentación y Seeding (Fase B):** Rediseño de las vistas con Shadcn UI (DataTables con paginación server-side) y extensión obligatoria del script `prisma/seed.ts` para inyectar los mismos productos que `/home/williams/EVAL-DEV01/seed_data.sql`
+
+Asegúrate de que el plan incluya el uso de transacciones de Prisma para las operaciones de ajuste de stock. Muestra la lista de tareas para su aprobación.
+
+### Qué hice
+Audité y aprobé la propuesta técnica del agente para el módulo de productos e inventarios. Validé la estrategia de mitigación contra inyección SQL mediante consultas parametrizadas de Prisma y la implementación de un sistema de auditoría de stock basado en movimientos atómicos.
+
+### Hallazgos legacy
+Se confirmaron fallos estructurales graves en el código antiguo: falta de restricciones `UNIQUE` en SKUs, ausencia de llaves foráneas (FK), vulnerabilidades de XSS en las vistas de catálogo y lógica de stock propensa a inconsistencias por falta de atomicidad.
+
+### Decisiones
+Decidí estandarizar el uso de transacciones atómicas de Prisma para cualquier ajuste de inventario, garantizando que el `InventoryStock` y el `InventoryMovement` se actualicen en una sola operación indivisible. Asimismo, impuse el uso de paginación del lado del servidor (server-side pagination) en las tablas de Shadcn UI para asegurar que el ERP sea escalable ante catálogos de miles de registros, evitando la degradación de rendimiento en el cliente.
+
+## 2026-05-17 15:27
+### Prompt Utilizado
+Especificación y diseño completados. Procede a desplegar el plan de tareas unificado (`sdd-tasks`) para el "Product Catalog & Inventory Bounded Context" basado en la arquitectura aprobada. El desglose debe ser atómico, indicando claramente los archivos afectados, los esquemas de validación compartidos en el monorepo y los puntos de verificación con TypeScript (`tsc --noEmit`) para asegurar una implementación incremental sin regresiones en el núcleo de autenticación. Muestra las tareas para proceder con la fase de construcción.
+
+### Qué hice
+Coordiné la transición desde la fase de diseño técnico hacia la creación del backlog de tareas (`sdd-tasks`). Supervisé que el agente estructurara los entregables en sub-tareas manejables para garantizar un flujo de desarrollo guiado, ordenado y alineado con los principios de integración continua dentro del monorepo.
+
+### Hallazgos legacy
+N/A (Fase de planificación de tareas de construcción).
+
+### Decisiones
+Decidí exigir un enfoque de desarrollo estrictamente secuencial: la persistencia y el dominio del backend deben estar 100% implementados y validados mediante pruebas de tipos antes de iniciar el andamiaje de los componentes visuales de Shadcn UI en el frontend. Esto evita el acoplamiento de la interfaz a modelos de datos inestables.
+
+## 2026-05-17 15:33
+### Prompt Utilizado
+Backlog detallado de 43 tareas (`sdd-tasks`) aprobado. Adopto formalmente la estrategia de mitigación de riesgo mediante un Stack de 2 commits encadenados (Chained PRs) para mantener la atomicidad del historial y facilitar el proceso de revisión:
+- **Commit 1 (Fase A - Backend):** Fases 1 a 6 (Infraestructura de datos, dominio hexagonal, casos de uso, repositorios y seeding base).
+- **Commit 2 (Fase B - Frontend):** Fases 7 a 9 (Componentes reactivos con Shadcn UI, DataTables paginadas y cableado del router).
+
+Ejecutar el comando `sdd-apply` de forma parcial para iniciar exclusivamente con el bloque del Backend (Fases 1 a 6). Detén el proceso antes de realizar cualquier commit automático.
+
+### Qué hice
+Audité el mapa de tareas de 43 puntos provisto por el agente. Validé las especificaciones críticas de aislamiento de dominio y el uso de transacciones SQL atómicas. Aprobé la división del desarrollo en un flujo bifurcado de backend y frontend para mitigar riesgos de sobrecarga en el tamaño de los commits (Scope Creep).
+
+### Hallazgos legacy
+N/A (Aprobación formal del plan de construcción).
+
+### Decisiones
+Decidí rechazar la estrategia de un único commit masivo (Single PR) debido al pronóstico de ~2,200 líneas de código, lo cual violaría las buenas prácticas de revisión del examen. Establecí un enfoque por capas (Layered Execution): primero se congelará el núcleo de persistencia, lógica de negocio y endpoints, garantizando que el backend compile con cero errores de TypeScript antes de inyectar la librería de renderizado de tablas en el cliente.
+
+## 2026-05-17 15:46
+### Prompt Utilizado
+Excelente trabajo completando las Fases 1 a 6 de la arquitectura del backend. El reporte de auditoría del seeding y la resolución de las limitaciones de tipos de SQLite/Prisma v7 son técnicamente impecables.
+
+Procede con la consolidación en Git de este primer commit del Stack (Chained Commits):
+1. Crea y muévete a una nueva rama descriptiva desde `develop` llamada `feature/catalog-backend`.
+2. Realiza el staging exclusivo de los archivos del backend, esquemas compartidos y scripts de persistencia (`apps/api/*`, `packages/shared/*`).
+3. Haz el commit atómico bajo la rama actual con el mensaje exacto: `feat(catalog): implement hexagonal backend architecture for catalog and transactional inventory`
+4. Una vez confirmado el commit, mantente en la misma base de trabajo y despliega mediante el comando `sdd-apply` la Fase B (Frontend - Fases 7 a 9) para iniciar la construcción de las interfaces de usuario con Shadcn UI. Detente antes de modificar el enrutador principal.
+
+Múestrame la confirmación del hash del commit generado.
+
+### Qué hice
+Validé la finalización de la Fase A del backend del Catálogo e Inventarios (29 tareas completadas). Verifiqué la correcta ejecución del seeding idempotente con 231 productos y la compilación libre de errores de tipos. Autoricé la consolidación de este hito de infraestructura en el control de versiones como el primer eslabón del stack encadenado.
+
+### Hallazgos legacy
+Se descubrieron limitaciones de tipos en el driver de SQLite integrado con Prisma v7 que impedían el uso nativo de `@db.Decimal(10,2)` y la función `createMany(skipDuplicates: true)`. Se resolvieron mediante el mapeo adaptativo a tipos `REAL` a nivel de base de datos y la orquestación de un pipeline secuencial de validación (`findUnique` + `create`) en el script de seeding para mantener la idempotencia.
+
+### Decisiones
+Decidí congelar el progreso del backend a través de un commit atómico intermedio antes de inyectar dependencias pesadas de componentes en el frontend (`@tanstack/react-table`). Esto garantiza un punto de restauración seguro y limpio enfocado exclusivamente en la API, asegurando que las transformaciones de datos y las transacciones de inventario estén completamente aisladas de la lógica de presentación del cliente.
+
+## 2026-05-17 15:36
+### Prompt Utilizado
+Confirmación recibida del commit del backend `73920ac` en la rama `feature/catalog-backend` y de la finalización exitosa de las Fases 7 y 8 del frontend. Las correcciones de la estructura de Shadcn UI y la optimización con `useMemo` para evitar re-renders costosos en la tabla de inventario son técnicamente correctas.
+
+Procede con el cierre de la Fase B (Fase 9):
+1. **Ruteo de Aplicación (Tarea 9.1):** Modifica `apps/web/src/router.tsx` para incorporar de forma segura las rutas `/products` e `/inventory` bajo el layout principal protegido. Asegura el uso de componentes de carga diferida (Suspense/Skeleton) si aplica.
+2. **Auditoría e Idempotencia (Tareas 9.2 y 9.3):** Ejecuta una verificación global con `pnpm -r exec tsc --noEmit`. Lanza el script de seeding (`pnpm db:seed` o equivalente) por segunda vez consecutiva para certificar empíricamente que la estrategia de upserts en productos, categorías, almacenes y proveedores es 100% idempotente y no duplica registros ni altera llaves primarias en LibSQL.
+
+Detén tu ejecución al finalizar las pruebas de compilación para coordinar el commit final de la UI.
+
+### Qué hice
+Validé el empaquetado y construcción de los componentes de presentación para el Catálogo y el Inventario (Fases 7 y 8 del frontend). Verifiqué la ausencia de errores en el analizador estático de TypeScript. Ordené la apertura de la fase final de integración (ruteo) y exigí pruebas rigurosas de regresión e idempotencia sobre la base de datos persistida.
+
+### Hallazgos legacy
+Se detectó una omisión en el agente durante la maquetación de `InventoryPage.tsx` consistente en la falta de memorización de las columnas de la tabla de datos, lo cual degradaba el rendimiento de renderizado en React 19 ante flujos de datos continuos. El error fue mitigado mediante la inyección del hook `useMemo`.
+
+### Decisiones
+Decidí condicionar la aprobación del cierre del módulo a un test de estrés de idempotencia doble sobre el script de sembrado de datos (Double Seed Execution Test). Esto garantiza que si el entorno se despliega múltiples veces en sistemas de Integración Continua (CI/CD), la base de datos de LibSQL procese los 231 productos y 693 filas de stock mediante operaciones de actualización segura (`upsert`), evitando colisiones de llaves primarias compuestas y corrupción de datos históricos.
+
+## 2026-05-17 16:02
+### Prompt Utilizado
+Detén el proceso de guardado en Git. Durante la auditoría visual de integración de la Fase B, detecté una omisión crítica en la experiencia de usuario (UX): el componente `Layout.tsx` o Navbar base no contiene los botones ni enlaces de navegación interactivos hacia las nuevas rutas `/products` y `/inventory`, dejando la interfaz en un estado aislado donde solo se puede acceder mediante manipulación directa de la URL en el navegador.
+
+Por favor, realiza la siguiente corrección antes de cerrar el módulo:
+1. Modifica el componente de maquetación común (`apps/web/src/components/Layout.tsx` o donde resida tu Navbar base de Shadcn UI).
+2. Inyecta los enlaces de navegación utilizando el componente `<Link>` nativo de React Router v7 (`react-router`) apuntando hacia `/dashboard`, `/products` e `/inventory`.
+3. Estiliza los enlaces con clases de Tailwind CSS para que cambien de estado visual (hover/active) y mantengan la estética limpia y corporativa del ERP.
+
+Verifica que el espacio de trabajo mantenga la compilación en limpio con `tsc --noEmit`.
+
+### Qué hice
+Intervine el flujo final antes de consolidar el cambio en Git al identificar un problema de accesibilidad e interacción en la interfaz de usuario. Ordené la reescritura del Layout base del frontend para inyectar un menú de navegación interactivo que unifique el acceso al Dashboard, el Catálogo de Productos y el Control de Inventarios.
+
+### Hallazgos legacy
+N/A (Corrección de cableado visual en la arquitectura SPA moderna).
+
+### Decisiones
+Decidí posponer el commit de la Fase B para incluir este ajuste de navegación interactiva de forma nativa. Entregar pantallas aisladas que requieran alteración manual de la barra de direcciones del navegador introduce una fricción inaceptable en el software. Forzar el uso del componente `<Link>` de React Router v7 asegura transiciones instantáneas en el cliente (Client-side Routing) sin disparar recargas de página completas, optimizando el rendimiento general del ERP.
+
+## 2026-05-17 16:11
+### Prompt Utilizado
+Detén cualquier proceso de Git. Tras una auditoría exhaustiva del código frontend y los scripts de base de datos generados para el "Product Catalog & Inventory Bounded Context", detecté tres desviaciones críticas que violan las restricciones del examen:
+
+1. **Asimetría de Paginación**: La página de Inventario renderiza un listado plano sin paginación server-side, rompiendo la paridad con la página de productos y amenazando el rendimiento.
+2. **Violación de Datos Inmutables**: El script `seed.ts` inyectó 231 productos ficticios generados de forma artificial, ignorando que el archivo `seed_data.sql` es la única fuente inmutable de verdad provista por el sistema legacy.
+3. **Ausencia de Capa de Caché**: El frontend consume Axios de forma directa en los componentes, omitiendo la implementación obligatoria de TanStack Query (`@tanstack/react-query`) para la gestión, sincronización e invalidación de estados del servidor.
+
+Por lo tanto, realiza exclusivamente las siguientes correcciones antes de proceder con el commit:
+- **Seed Fiel al Legacy**: Reescribe el script `prisma/seed.ts`. Haz que lea y parsee el archivo `/home/williams/EVAL-DEV01/seed_data.sql` real (extrayendo los INSERTs originales de usuarios, categorías, proveedores, almacenes y productos) e insértalos de forma idempotente con Bcrypt para usuarios y mapeo directo para el catálogo.
+- **TanStack Query Setup**: Instala `@tanstack/react-query`. Configura el `QueryClientProvider` en la raíz de `apps/web` e implementa los hooks `useQuery` y `useMutation` para el catálogo y movimientos de stock.
+- **Paginación en Inventario**: Modifica el caso de uso `GetInventory` en el backend y la vista `InventoryPage.tsx` en el frontend para incorporar paginación server-side exacta al modelo de productos.
+
+### Qué hice
+Congelé el flujo de control de versiones tras descubrir desviaciones arquitectónicas graves. Ordené la reescritura total del script de seeding para recuperar la fidelidad del archivo SQL legacy inmutable, la instalación e integración de TanStack Query para mitigar el acoplamiento de peticiones HTTP, y la unificación de la UX mediante paginación en el control de stock.
+
+### Hallazgos legacy
+Se constató que el agente había ignorado el archivo de datos original (`seed_data.sql`), rompiendo la consistencia de catálogos esperada por los evaluadores. Asimismo, se detectó la ausencia de un gestor de caché asíncrono, provocando llamadas redundantes a la API en cada cambio de pestaña del router.
+
+### Decisiones
+Decidí penalizar el avance hacia Git hasta asegurar un cumplimiento del 100% de las especificaciones de la arquitectura moderna. Forzar la lectura directa del `seed_data.sql` asegura la paridad exacta de IDs con el sistema antiguo. La adopción de TanStack Query se establece como obligatoria para optimizar la red mediante políticas de `staleTime` e invalidación automática de consultas (`invalidateQueries`) inmediatamente después de disparar una mutación de ajuste de stock, eliminando estados stale en el cliente.
+
+## 2026-05-17 16:46
+### Prompt Utilizado
+Detén el flujo de Git inmediatamente. La integración de TanStack Query es correcta, pero has omitido dos de las directrices mandatorias del bloque anterior:
+
+1. **Ausencia de Controles de UX**: La interfaz de `InventoryPage.tsx` sigue careciendo de los botones e indicadores visuales para la paginación server-side, rompiendo la paridad de la interfaz con la sección de productos.
+2. **Persistencia de Estado Sucio (Data Ficticia)**: El catálogo sigue mostrando los registros inventados debido a la falta de un ciclo de limpieza antes de aplicar el nuevo parser del script `seed_data.sql`.
+
+Por lo tanto, ejecuta estrictamente lo siguiente de forma inmediata:
+- **Destrucción y Re-sembrado Limpio**: Ejecuta un reseteo completo de la base de datos SQLite utilizando `npx prisma migrate reset --force` (o limpiando las tablas mediante un script de truncado atómico en el seed) para purgar la data falsa. Asegúrate de ejecutar el seed que lee e inserta el contenido real de `seed_data.sql`.
+- **Inyección de Controles en la Tabla de Inventario**: Copia los componentes e indicadores de paginación de la tabla de productos e inyéctalos en el pie de página de la DataTable de `InventoryPage.tsx` vinculando los estados de `page` y `limit` a la query de TanStack Query.
+
+### Qué hice
+Intervine nuevamente el flujo del agente al detectar una implementación parcial de los requerimientos. Ordené la purga total de la base de datos para erradicar los registros corruptos/artificiales del catálogo y obligué al agente a completar los elementos visuales de control de paginación en la vista de inventarios.
+
+### Hallazgos legacy
+Se descubrió que la ejecución simple de un script de seed de Prisma no elimina registros preexistentes si no coinciden exactamente los identificadores de los upserts, provocando una colisión visual de datos antiguos (falsos) y nuevos (del legacy). Se requirió una directiva de reseteo destructivo controlado para restablecer la integridad del entorno local.
+
+### Decisiones
+Decidí rechazar el empaquetado del Frontend hasta que la base de datos refleje con fidelidad absoluta los registros históricos extraídos de `seed_data.sql`. Mantener controles visuales asimétricos (paginación en una vista y scroll infinito o listado truncado en otra) disminuye severamente la calificación de consistencia de diseño en el examen.
+
+## 2026-05-17 17:15
+
+### Prompt Utilizado
+Excelente trabajo resolviendo los errores de TypeScript y la lógica de roles en el backend y frontend. Procederemos con la mejora de UX para la navegación avanzada y el selector de registros por página (5, 10, 20, etc.).
+
+Aplica estos cambios exclusivamente en el Frontend (`apps/web`), manteniendo paridad absoluta entre la página de Productos y la de Inventarios:
+
+1. **Navegación Avanzada**: Añade dos botones adicionales a los controles de paginación actuales:
+   - Botón `<<` (Ir a la primera página): Se deshabilita si `page === 1`.
+   - Botón `>>` (Ir a la última página): Se deshabilita si `page === totalPages`.
+2. **Selector de Límite (Page Size)**: Añade un componente Dropdown/Select al lado de los botones de navegación con las opciones: "Mostrar 5", "Mostrar 10", "Mostrar 20" registros.
+3. **Reseteo de Estado**: Al cambiar el valor del selector de límite, debes resetear automáticamente el estado de la página actual a `1` para evitar desbordamientos de índice.
+
+- Ambas vistas (Productos e Inventario) deben lucir exactamente iguales en su sección de paginación.
+- Los nuevos componentes deben consumir correctamente los estados locales o query params que controlan `page` y `limit` en las llamadas de TanStack Query.
+- Reutiliza los componentes de UI base del proyecto (como Shadcn/ui o Tailwind). No inventes estilos customizados fuera del estándar.
+- Cero errores en el build de TypeScript del workspace `apps/web`.
+
+### Qué hice
+Se validó la resolución de los fixes anteriores relacionados con la paginación del caso de uso en el Backend, la remoción del puerto duplicado y el ocultamiento condicional de la columna "Adjust Stock" según el rol `isAdmin`. Se aprobó la solicitud de mejora de UX del agente para expandir la navegación avanzada y selectores de registros tanto en la sección de Productos como en la de Inventario.
+
+### Hallazgos legacy
+La API y los casos de uso ya procesan dinámicamente los parámetros de paginación de forma genérica. Sin embargo, el cliente carecía de los controles para mutar el tamaño de la página (`limit`), lo que requería que el estado del frontend se sincronizara limpiamente reiniciando el puntero de la página a la primera posición (`page = 1`) ante cualquier cambio de escala para evitar respuestas vacías.
+
+### Decisiones
+Decidí aprobar la mejora de UX bajo la estricta condición de mantener la paridad exacta de diseño entre `InventoryPage.tsx` y la página de productos, aislando por completo los cambios al entorno del cliente (`apps/web`) y bloqueando cualquier refactorización innecesaria en las capas del backend que ya se encuentran estables.

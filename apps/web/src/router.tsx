@@ -1,6 +1,8 @@
 import { createBrowserRouter, redirect } from 'react-router';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import ProductsPage from './pages/ProductsPage';
+import InventoryPage from './pages/InventoryPage';
 import Layout from './components/Layout';
 import { protectedRouteLoader } from './components/ProtectedRoute';
 import AdminGuard, { adminGuardLoader } from './components/AdminGuard';
@@ -32,6 +34,14 @@ export const router = createBrowserRouter([
         path: 'dashboard',
         element: <Dashboard />,
         loader: protectedRouteLoader,
+      },
+      {
+        path: 'products',
+        element: <ProductsPage />,
+      },
+      {
+        path: 'inventory',
+        element: <InventoryPage />,
       },
       {
         path: 'admin',
