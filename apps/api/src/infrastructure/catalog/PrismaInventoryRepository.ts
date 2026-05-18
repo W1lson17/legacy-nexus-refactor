@@ -1,5 +1,9 @@
 import type { PrismaClient } from '../../generated/prisma/client.js';
-import type { InventoryRepository, InventoryGetMovementsParams } from '../../domain/ports/InventoryRepository.js';
+import type {
+  InventoryRepository,
+  InventoryGetStockParams,
+  InventoryGetMovementsParams,
+} from '../../domain/ports/InventoryRepository.js';
 import { InventoryStock } from '../../domain/entities/InventoryStock.js';
 import { InventoryMovement } from '../../domain/entities/InventoryMovement.js';
 import type { MovementType } from '../../domain/entities/InventoryMovement.js';
@@ -9,37 +13,42 @@ export class PrismaInventoryRepository implements InventoryRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async getStock(
-    productId: number,
-    warehouseId?: number,
-  ): Promise<{ product: unknown; warehouse: unknown; quantity: number }[]> {
+    params: InventoryGetStockParams,
+  ): Promise<{ items: { product: unknown; warehouse: unknown; quantity: number }[]; total: number }> {
     const where: Record<string, unknown> = {};
-    if (productId && productId !== 0) {
-      where.productId = productId;
-    }
-    if (warehouseId !== undefined) {
-      where.warehouseId = warehouseId;
+    if (params.warehouseId !== undefined) {
+      where.warehouseId = params.warehouseId;
     }
 
-    const rows = await this.prisma.inventoryStock.findMany({
-      where,
-      include: { product: true, warehouse: true },
-    });
+    const [rows, total] = await Promise.all([
+      this.prisma.inventoryStock.findMany({
+        where,
+        include: { product: true, warehouse: true },
+        skip: (params.page - 1) * params.limit,
+        take: params.limit,
+        orderBy: [{ product: { name: 'asc' } }, { warehouse: { name: 'asc' } }],
+      }),
+      this.prisma.inventoryStock.count({ where }),
+    ]);
 
-    return rows.map((row) => ({
-      product: {
-        id: (row.product as Record<string, unknown>).id,
-        sku: (row.product as Record<string, unknown>).sku,
-        name: (row.product as Record<string, unknown>).name,
-        price: (row.product as Record<string, unknown>).price,
-        category: (row.product as Record<string, unknown>).category,
-      },
-      warehouse: {
-        id: (row.warehouse as Record<string, unknown>).id,
-        name: (row.warehouse as Record<string, unknown>).name,
-        region: (row.warehouse as Record<string, unknown>).region,
-      },
-      quantity: row.quantity,
-    }));
+    return {
+      items: rows.map((row) => ({
+        product: {
+          id: (row.product as Record<string, unknown>).id,
+          sku: (row.product as Record<string, unknown>).sku,
+          name: (row.product as Record<string, unknown>).name,
+          price: (row.product as Record<string, unknown>).price,
+          category: (row.product as Record<string, unknown>).category,
+        },
+        warehouse: {
+          id: (row.warehouse as Record<string, unknown>).id,
+          name: (row.warehouse as Record<string, unknown>).name,
+          region: (row.warehouse as Record<string, unknown>).region,
+        },
+        quantity: row.quantity,
+      })),
+      total,
+    };
   }
 
   async adjustStock(params: {

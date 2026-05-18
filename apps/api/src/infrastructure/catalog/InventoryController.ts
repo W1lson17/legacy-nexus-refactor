@@ -20,14 +20,16 @@ export function createInventoryRouter(deps: {
   const auth = authMiddleware(deps.tokenService) as RequestHandler;
   const admin = adminMiddleware() as RequestHandler;
 
-  // GET /api/inventory — Get inventory (optional warehouseId filter)
+  // GET /api/inventory — Get inventory (optional warehouseId filter, paginated)
   router.get('/', auth, async (req, res) => {
     try {
       const warehouseId = req.query['warehouseId']
         ? parseInt(String(req.query['warehouseId']), 10)
         : undefined;
+      const page = parseInt(String(req.query['page'] ?? ''), 10) || 1;
+      const limit = parseInt(String(req.query['limit'] ?? ''), 10) || 20;
 
-      const result = await deps.getInventoryUseCase.execute({ warehouseId });
+      const result = await deps.getInventoryUseCase.execute({ warehouseId, page, limit });
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });
