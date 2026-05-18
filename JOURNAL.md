@@ -592,3 +592,34 @@ El framework `gentle-ai` requiere políticas explícitas de detención (*early e
 
 ### Decisiones
 Decidí adoptar un enfoque de Git Flow semi-asistido. Aunque se le permite al agente orquestar la creación de ramas y fusiones lineales, se le revoca la autonomía para la resolución de conflictos, forzando un punto de control humano obligatorio en caso de colisión de archivos en `develop`.
+
+## 2026-05-17 17:32
+### Prompt Utilizado
+La lógica de negocio, la UI y el flujo de Git están completamente consolidados en la rama `develop`. Para finalizar el desarrollo, procederemos a garantizar la portabilidad y reproducibilidad del proyecto para que pueda ser operado desde una máquina limpia siguiendo estrictamente la documentación.
+
+Realiza una auditoría completa del entorno y actualiza la documentación/scripts ejecutando lo siguiente:
+
+1. **Auditoría de Dependencias y Variables de Entorno**:
+   - Revisa el archivo `README.md`. Asegúrate de que liste todas las dependencias globales necesarias (ej. versión de Node.js, npm/pnpm/yarn).
+   - Verifica que exista un archivo `.env.example` actualizado en la raíz y en los workspaces correspondientes con todas las variables requeridas para que el Backend y la base de datos funcionen (sin credenciales reales).
+
+2. **Mecanismo de Inicialización Automatizado (Setup Script)**:
+   - Modifica o añade un script en el `package.json` raíz llamado `"project:setup"` o `"init"` que ejecute secuencialmente de forma automática:
+     - Instalación limpia de dependencias.
+     - Generación del cliente de Prisma (`npx prisma generate`).
+     - Creación de la base de datos local y ejecución del sembrado de datos (`npx prisma migrate reset --force` o el equivalente configurado en tus pasos anteriores).
+
+3. **Mecanismos de Validación**:
+   - Añade un script `"project:validate"` o `"health-check"` que valide que el build de producción de ambos workspaces (`apps/api` y `apps/web`) compile sin errores de TypeScript y genere los artefactos listos para producción.
+
+- Un desarrollador externo debe poder clonar el repositorio, copiar el `.env.example`, ejecutar el script de inicialización y tener la aplicación corriendo con la data real de `seed_data.sql` sin intervención manual extra. Copia el archivo dentro de este proyecto desde `/home/williams/EVAL-DEV01/seed_data.sql`.
+- Actualiza el `README.md` agregando una sección clara de "Instalación Rápida" (Quick Start) que documente estos comandos automatizados.
+
+### Qué hice
+Instruí al agente auditar los archivos de configuración de entorno (`.env.example`), estructurar scripts automatizados de setup en el `package.json` raíz y actualizar el `README.md` para garantizar un despliegue sin fricciones en máquinas externas.
+
+### Hallazgos legacy
+La causa común de fallos en despliegues en máquinas limpias dentro de arquitecturas monorepo es el olvido de scripts de ciclo de vida esenciales, como la generación de tipos del ORM (`prisma generate`) previa al build del backend, o la ausencia de plantillas de variables de entorno, lo que detiene la compilación por validaciones estrictas del compilador.
+
+### Decisiones
+Decidí delegar la automatización de la inicialización al agente mediante scripts nativos de NPM/PNPM. Al encapsular la instalación, migración de base de datos y validación del build en comandos únicos de un solo paso, se reduce a cero el error humano y se asegura la máxima puntuación en los criterios de operabilidad del examen.

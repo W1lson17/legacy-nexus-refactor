@@ -241,7 +241,7 @@ export default function ProductsPage() {
         <Select
           value={category}
           onValueChange={(val) => {
-            setCategory(val === '__all__' ? '' : val);
+            setCategory(val === '__all__' ? '' : (val ?? ''));
             setPage(1);
           }}
         >

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { productUpdateSchema, productCreateSchema, type ProductOutput, type ProductCreateInput } from '@legacy/shared';
+import { productCreateSchema, type ProductOutput, type ProductCreateInput } from '@legacy/shared';
 import { useCreateProduct, useUpdateProduct } from '../hooks/useProducts';
 import { useSuppliers } from '../hooks/useInventory';
 import {
@@ -37,6 +37,7 @@ type FormValues = ProductCreateInput;
 export function ProductFormModal({ open, onOpenChange, product, onSuccess }: ProductFormModalProps) {
   const isEdit = product !== null;
   const [formError, setFormError] = useState<string | null>(null);
+  const [supplierId, setSupplierId] = useState<number | undefined>(undefined);
 
   const suppliersQuery = useSuppliers();
   const createMutation = useCreateProduct();
@@ -49,9 +50,10 @@ export function ProductFormModal({ open, onOpenChange, product, onSuccess }: Pro
     reset,
     setValue,
     setError,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(isEdit ? productUpdateSchema : productCreateSchema),
+    resolver: zodResolver(productCreateSchema),
     defaultValues: {
       sku: '',
       name: '',
@@ -177,8 +179,12 @@ export function ProductFormModal({ open, onOpenChange, product, onSuccess }: Pro
           <div className="grid gap-2">
             <Label htmlFor="supplierId">Supplier</Label>
             <Select
-              value={register('supplierId').value ? String(register('supplierId').value) : ''}
-              onValueChange={(val) => setValue('supplierId', val ? Number(val) : undefined)}
+              value={supplierId ? String(supplierId) : ''}
+              onValueChange={(val) => {
+                const num = val ? Number(val) : undefined;
+                setSupplierId(num);
+                setValue('supplierId', num);
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a supplier" />

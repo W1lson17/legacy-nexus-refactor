@@ -125,7 +125,7 @@ export function StockAdjustModal({ open, onOpenChange, item, onSuccess }: StockA
             <Label htmlFor="adjust-type">Type *</Label>
             <Select
               defaultValue="IN"
-              onValueChange={(val) => setValue('type', val)}
+              onValueChange={(val) => { if (val) setValue('type', val as FormValues['type']); }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select type" />

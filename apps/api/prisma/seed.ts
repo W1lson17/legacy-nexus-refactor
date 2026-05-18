@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import bcrypt from 'bcrypt';
@@ -15,7 +16,8 @@ const BCRYPT_COST = 12;
 
 // ── Parse legacy seed_data.sql ─────────────────────────────────────────────────
 
-const LEGACY_SEED_PATH = '/home/williams/EVAL-DEV01/seed_data.sql';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const LEGACY_SEED_PATH = join(__dirname, 'seed_data.sql');
 
 interface LegacyUser {
   username: string;

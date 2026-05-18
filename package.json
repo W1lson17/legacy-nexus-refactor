@@ -4,9 +4,12 @@
   "scripts": {
     "dev:api": "pnpm --filter @legacy/api dev",
     "dev:web": "pnpm --filter @legacy/web dev",
+    "dev": "pnpm run dev:api & pnpm run dev:web",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "project:setup": "pnpm install && pnpm --filter @legacy/api exec prisma generate && pnpm --filter @legacy/api exec prisma db push --force-reset && pnpm --filter @legacy/api exec prisma db seed",
+    "project:validate": "pnpm --filter @legacy/api exec tsc --noEmit && pnpm --filter @legacy/web exec tsc --noEmit && pnpm --filter @legacy/web run build"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",

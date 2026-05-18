@@ -172,7 +172,7 @@ export default function InventoryPage() {
         <Select
           value={warehouseFilter}
           onValueChange={(val) => {
-            setWarehouseFilter(val === '__all__' ? '' : val);
+            setWarehouseFilter(val === '__all__' ? '' : (val ?? ''));
             setPage(1);
           }}
         >
