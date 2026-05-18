@@ -20,3 +20,16 @@ export const productSearchSchema = z.object({
 export type ProductCreateInput = z.infer<typeof productCreateSchema>;
 export type ProductUpdateInput = z.infer<typeof productUpdateSchema>;
 export type ProductSearchInput = z.infer<typeof productSearchSchema>;
+
+export type ProductOutput = {
+  id: number;
+  sku: string;
+  name: string;
+  description: string | null;
+  price: number;
+  category: string | null;
+  supplierId: number | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};
