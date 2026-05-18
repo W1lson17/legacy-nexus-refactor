@@ -17,6 +17,17 @@ Modernización fullstack de un ERP retail/logístico legacy.
 git clone <repo-url>
 cd legacy-nexus-refactor
 cp .env.example .env
+pnpm install
+```
+
+2. **If using pnpm 11+**, approve build scripts when prompted (or run):
+```bash
+pnpm approve-builds
+# Select: @prisma/engines, esbuild, prisma
+```
+
+3. Run the setup script (generates Prisma client, creates DB, seeds data):
+```bash
 pnpm project:setup
 ```
 

@@ -623,3 +623,34 @@ La causa común de fallos en despliegues en máquinas limpias dentro de arquitec
 
 ### Decisiones
 Decidí delegar la automatización de la inicialización al agente mediante scripts nativos de NPM/PNPM. Al encapsular la instalación, migración de base de datos y validación del build en comandos únicos de un solo paso, se reduce a cero el error humano y se asegura la máxima puntuación en los criterios de operabilidad del examen.
+
+## 2026-05-17 18:45
+
+### Prompt Utilizado
+Todos los cambios y ramas han sido pusheados con éxito al repositorio remoto. 
+Ahora realizaremos la prueba de validación final de portabilidad para asegurar que el proyecto se inicialice correctamente en un entorno limpio.
+
+Ejecuta los siguientes comandos simulando ser un desarrollador externo que interactúa con el repositorio por primera vez:
+
+1. **Aislamiento y Clonación**:
+   - Sal por completo del directorio actual del proyecto.
+   - Crea una carpeta temporal en tu sistema (ej. `mkdir ../test-clean-install && cd ../test-clean-install`).
+   - Clona el repositorio directamente desde el origen remoto `git clone git@github.com:W1lson17/legacy-nexus-refactor.git`
+
+2. **Ejecución del Flujo del README**:
+   - Sigue los pasos del README.md que se creo
+   - En dado caso de fallar hacer la actualizacion de lo que sea necesario para que el proyecto se pueda inicializar en un entorno limpio.
+   - Si existen cambios no hacer commit hasta que yo verifique que funciona correctamente
+
+3. **Verificación de Salud (Health Check)**:
+   - Corre el script de validación de compilación para comprobar que el build de producción no sufra de dependencias fantasma o errores de tipos de último minuto.
+   - Confirma detalladamente en tu respuesta si la base de datos SQLite se creó y se pobló correctamente con el archivo `seed_data.sql` en esta instalación limpia.
+
+### Qué hice
+Se dio por concluido el empaquetado y subida a producción en el repositorio remoto. Ordené al agente ejecutar una simulación de caja negra (*Black-box testing*) clonando la rama `develop` en un directorio aislado y ejecutando la secuencia del README para auditar y garantizar la portabilidad absoluta del sistema antes de la entrega final.
+
+### Hallazgos legacy
+Las pruebas de clonación en limpio revelan discrepancias comunes que no se detectan en el entorno de desarrollo local, tales como archivos omitidos en el `.gitignore` (que deberían subirse), dependencias declaradas en sub-carpetas pero ausentes en los manifiestos del monorepo, o rutas relativas rígidas que fallan al cambiar el directorio raíz del proyecto.
+
+### Decisiones
+Decidí someter el entregable a una auditoría estricta de "Instalación en un solo paso" (*One-step build*). Validar que un tercero pueda operar el sistema clonando únicamente la rama de integración `develop` mitiga cualquier riesgo de rechazo por fallos de entorno en la máquina del evaluador.

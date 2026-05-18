@@ -8,22 +8,14 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
-    "project:setup": "pnpm install && pnpm --filter @legacy/api exec prisma generate && pnpm --filter @legacy/api exec prisma db push --force-reset && pnpm --filter @legacy/api exec prisma db seed",
-    "project:validate": "pnpm --filter @legacy/api exec tsc --noEmit && pnpm --filter @legacy/web exec tsc --noEmit && pnpm --filter @legacy/web run build"
+    "project:setup": "pnpm install && cd packages/shared && npx tsc -b && cd ../../apps/api && npx prisma generate && npx prisma db push --force-reset && npx prisma db seed",
+    "project:validate": "cd packages/shared && npx tsc -b && cd ../../apps/api && npx tsc --noEmit && cd ../web && npx tsc --noEmit && pnpm run build"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",
     "eslint": "^9.39.4",
     "prettier": "^3.8.3",
+    "prisma": "^7.8.0",
     "typescript": "^5.9.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "esbuild",
-      "prisma",
-      "tsx"
-    ]
   }
 }

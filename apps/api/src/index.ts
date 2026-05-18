@@ -1,3 +1,5 @@
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express, { type Express } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -39,7 +41,8 @@ import { GetInventoryMovements } from './application/use-cases/GetInventoryMovem
 import { ListSuppliers } from './application/use-cases/ListSuppliers.js';
 import { ListWarehouses } from './application/use-cases/ListWarehouses.js';
 
-dotenv.config();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dirname, '../../../.env') });
 
 const app: Express = express();
 const PORT = process.env['PORT'] ?? 3000;
